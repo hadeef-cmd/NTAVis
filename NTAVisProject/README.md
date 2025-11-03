@@ -1,69 +1,60 @@
-# NTAVis: Network Traffic Analysis & Visualization
+# NTAVis - Network Traffic Analysis & Visualization System
 
-NTAVis is a real-time network monitoring tool built with Python and Streamlit. It captures and analyzes network traffic to detect threats, provides an interactive dashboard for visualization, and includes features for threat management.
+NTAVis is a Python-based tool for real-time network packet capture, threat analysis, and visualization. It uses Scapy for packet sniffing and Streamlit for an interactive web-based dashboard.
 
 ## Features
 
-- **Real-time Packet Analysis**: Captures and inspects live network traffic.
-- **Threat Detection**: Identifies Malformed packets, Suspicious activity, SYN Floods, and UDP Floods.
-- **Secure OTP Login**: Two-factor authentication using One-Time Passwords sent via email.
-- **Interactive Dashboard**:
-    - **Overview**: High-level metrics and raw packet data.
-    - **Geo Map**: Visualizes the geographic source of threats.
-    - **Analytics**: Charts for threat types, protocols, and activity over time.
-- **IP Address Filtering**: Search for specific source IPs within the raw data.
-- **Downloadable Reports**: Export filtered data to a CSV file.
-- **Simulated Defense**: A "Block IP" feature to simulate adding malicious IPs to a blocklist.
-- **Secrets Management**: Securely manages credentials using Streamlit's secrets manager.
+*   **Real-Time Packet Capture:** Captures network traffic on a specified interface.
+*   **Threat Detection:** Identifies suspicious patterns like SYN/UDP floods and malformed packets.
+*   **Geolocation:** Maps the geographical source of suspicious IP addresses.
+*   **Interactive Dashboard:** A Streamlit application to view threat overviews, raw packet data, and analytics charts.
+*   **Secure Login:** Features a two-factor authentication (OTP) system for the first login.
 
-## Setup & Installation
+## Setup and Installation
 
-### 1. Prerequisites
-- Python 3.8+
-- Pip
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/hadeef-cmd/NTAVis.git
+    cd NTAVis
+    ```
 
-### 2. Clone the Repository
-(Or just use your local project folder)
+2.  **Create and activate a virtual environment:**
+    ```bash
+    python3 -m venv fyp_env
+    source fyp_env/bin/activate
+    ```
 
-### 3. Install Dependencies
-Install all required Python packages.
-```bash
-pip install -r requirements.txt
-```
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### 4. Configure Secrets
-Create a file at `.streamlit/secrets.toml` and add your credentials. This keeps them secure and out of the main code.
+4.  **Configure Secrets:**
+    Create a file at `.streamlit/secrets.toml` and add your credentials:
+    ```toml
+    # .streamlit/secrets.toml
 
-```toml
-# .streamlit/secrets.toml
+    [gmail]
+    email = "your-email@gmail.com"
+    app_password = "your-16-digit-app-password"
 
-[gmail]
-email = "your_email@gmail.com"
-app_password = "your_gmail_app_password"
+    [login]
+    username = "your_username"
+    password = "your_password"
+    ```
 
-[login]
-username = "your_dashboard_username"
-password = "your_dashboard_password"
-```
+## How to Run
 
-##  How to Run
-
-1.  **Start the Packet Capture** (in a separate terminal, if needed):
+1.  **Start the Packet Capture (requires sudo):**
+    Open a terminal and run:
     ```bash
     sudo python3 capture.py
     ```
 
 2.  **Run the Streamlit Dashboard:**
+    Open a second terminal and run:
     ```bash
     streamlit run app.py
     ```
 
-3.  Open your browser to the local URL provided by Streamlit, and log in using your credentials and the OTP sent to your email.
-
-## 📝 License
-
-This project is for academic and demonstration purposes only. See the `LICENSE` file for more details.
-
-## 👨 Author
-
-- Muhammad Hadif Shah Bin Mohd Hadli Shah
+3.  Open your web browser to the URL provided by Streamlit (usually `http://localhost:8501`).

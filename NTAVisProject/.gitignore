@@ -1,0 +1,10 @@
+# Ignore Python virtual environment
+fyp_env/
+__pycache__/
+
+# Ignore database and user-specific files
+*.db
+*.json
+
+# Ignore Streamlit secrets file
+.streamlit/secrets.toml

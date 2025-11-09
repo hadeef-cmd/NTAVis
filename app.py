@@ -2,6 +2,7 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 import folium
+from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 import plotly.express as px
 import pyotp
@@ -109,7 +110,7 @@ def login_page():
                         if st.session_state.get("totp") and st.session_state["totp"].verify(otp_input.strip(), valid_window=2):
                             user_data[st.secrets["login"]["username"]] = st.session_state["email_to_save"]
                             save_user_data(user_data)
-                            
+
                             st.session_state["logged_in"] = True
                             st.session_state.pop("otp_sent", None)
                             st.session_state.pop("totp", None)
@@ -158,27 +159,95 @@ def main_dashboard():
         col2.metric("⚠️ Malformed", int(threat_counts.get("Malformed", 0)))
         col3.metric("🌊 SYN Flood", int(threat_counts.get("SYN Flood", 0)))
         col4.metric("💧 UDP Flood", int(threat_counts.get("UDP Flood", 0)))
-        
+
         st.markdown("---")
         st.subheader("📂 Raw Packet Data")
-        st.dataframe(df.tail(1000), use_container_width=True)
+
+        with st.form(key='search_form'):
+            search_ip = st.text_input("Enter IP Address to filter", placeholder="Filter by source or destination IP...")
+            search_button = st.form_submit_button(label="Search")
+
+        display_df = df
+        if search_button and search_ip:
+            display_df = df[df['src_ip'].str.contains(search_ip, na=False) | df['dst_ip'].str.contains(search_ip, na=False)]
+
+        st.dataframe(display_df.tail(1000), use_container_width=True)
 
     elif menu == "🗺️ Geo Map":
         st.markdown("## 🗺️ Threat Source Map")
+
+        st.markdown("""
+        **Legend:**
+        - 🔴 `Suspicious`
+        - 🟢 `UDP Flood`
+        - 🔵 `SYN Flood`
+        - 🟠 `Malformed`
+        - ⚪ `Unknown`
+        """)
+        
         map_df = df.dropna(subset=["latitude", "longitude"])
         if not map_df.empty:
-            avg_lat, avg_lon = map_df["latitude"].mean(), map_df["longitude"].mean()
-            m = folium.Map(location=[avg_lat, avg_lon], zoom_start=2, tiles="CartoDB positron")
+            threat_colors = {
+                "Suspicious": "red",
+                "UDP Flood": "green",
+                "SYN Flood": "blue",
+                "Malformed": "orange",
+                "Unknown": "gray"
+            }
+
+            # --- STATEFUL MAP FIX ---
+            # 1. Initialize map center and zoom in session_state if they don't exist
+            if "map_center" not in st.session_state:
+                st.session_state["map_center"] = [map_df["latitude"].mean(), map_df["longitude"].mean()]
+            if "map_zoom" not in st.session_state:
+                st.session_state["map_zoom"] = 2
+
+            # 2. Create map using the stateful center and zoom
+            m = folium.Map(
+                location=st.session_state["map_center"],
+                zoom_start=st.session_state["map_zoom"],
+                tiles="CartoDB positron"
+            )
+
+            marker_cluster = MarkerCluster(name="Threats").add_to(m)
+
             for _, row in map_df.iterrows():
-                folium.CircleMarker(location=[row["latitude"], row["longitude"]], radius=5, color="red", fill=True, fill_color="red", popup=f"IP: {row['src_ip']}<br>Threat: {row['threat_type']}").add_to(m)
-            st_folium(m, use_container_width=True, height=600)
+                threat_type = row.get("threat_type", "Unknown")
+                color = threat_colors.get(threat_type, "gray")
+                tooltip_text = f"IP: {row['src_ip']}<br>Threat: {threat_type}"
+                
+                folium.CircleMarker(
+                    location=[row["latitude"], row["longitude"]],
+                    radius=5,
+                    color=color,
+                    fill=True,
+                    fill_color=color,
+                    fill_opacity=0.7,
+                    tooltip=tooltip_text
+                ).add_to(marker_cluster)
+
+            # 3. Render the map and capture its output state
+            map_output = st_folium(
+                m,
+                use_container_width=True,
+                height=600,
+                returned_objects=[] # We don't need to return clicked objects
+            )
+
+            # 4. Update session_state with the new map state from user interaction
+            if map_output and map_output.get("center"):
+                st.session_state["map_center"] = [map_output["center"]["lat"], map_output["center"]["lng"]]
+            if map_output and map_output.get("zoom"):
+                st.session_state["map_zoom"] = map_output["zoom"]
+            # --- END OF FIX ---
+
         else:
             st.info("No geolocation data to display on the map.")
-            
+
     elif menu == "📈 Analytics":
         st.markdown("## 📈 Analytics Dashboard")
         config = {'toImageButtonOptions': {'format': 'png', 'scale': 2}}
-        
+
         st.markdown("#### Traffic Composition")
         col1, col2 = st.columns(2)
         with col1:
@@ -212,7 +281,7 @@ if __name__ == "__main__":
     else:
         if "logged_in" not in st.session_state:
             st.session_state.logged_in = False
-        
+
         if st.session_state.logged_in:
             main_dashboard()
         else:

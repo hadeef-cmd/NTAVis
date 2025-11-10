@@ -127,7 +127,6 @@ def send_otp(otp, recipient_email):
 
 # --- Main App Logic ---
 def main_dashboard():
-    # This section remains unchanged from your previous version
     st.sidebar.title(f"Welcome, {st.secrets['login']['username']}!")
     if st.sidebar.button("Logout"):
         st.session_state.clear()
@@ -200,6 +199,7 @@ def main_dashboard():
             top_src_ips_df = df['src_ip'].value_counts().nlargest(10).reset_index()
             fig3 = px.bar(top_src_ips_df, x='src_ip', y='count', title="Top 10 Source IPs")
             st.plotly_chart(fig3, use_container_width=True, config=config)
+            st.download_button("Download Data as CSV", convert_df_to_csv(top_src_ips_df), "top_source_ips.csv", "text/csv", key='download-src-ips')
         with col4:
             top_dst_ips_df = df['dst_ip'].value_counts().nlargest(10).reset_index()
             fig4 = px.bar(top_dst_ips_df, x='dst_ip', y='count', title="Top 10 Destination IPs")

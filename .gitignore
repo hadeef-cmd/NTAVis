@@ -1,10 +1,15 @@
-# Ignore Python virtual environment
-fyp_env/
-__pycache__/
+# Virtual Environment
+venv/
 
-# Ignore database and user-specific files
-*.db
-*.json
-
-# Ignore Streamlit secrets file
+# Streamlit Secrets
 .streamlit/secrets.toml
+
+# Local User Data
+user_data.json
+
+# Local Database
+packets.db
+
+# OS files
+.DS_Store
+__pycache__/

@@ -41,7 +41,6 @@ def convert_df_to_csv(df):
     return df.to_csv(index=False).encode('utf-8')
 
 # --- Helper function to style the threat table ---
-# *** THIS FIXES THE 'highlight_facts' ERROR ***
 def highlight_threats(row):
     color = THREAT_COLOR_MAP.get(row.threat_type, 'gray')
     if color != 'gray':
@@ -68,7 +67,7 @@ def get_data():
     try:
         conn = psycopg2.connect(st.secrets["database"]["connection_string"])
         df = pd.read_sql_query("SELECT * FROM packets ORDER BY timestamp DESC LIMIT 2000", conn)
-        conn.close() # <--- *** THIS IS THE FIX for SyntaxError ***
+        conn.close() 
         if "protocol" in df.columns:
             df["protocol"] = df["protocol"].apply(lambda x: PROTOCOL_MAP.get(int(x), str(x)) if pd.notnull(x) else "Unknown")
         if "timestamp" in df.columns:
@@ -80,7 +79,7 @@ def get_data():
 # --- OTP & Login Logic ---
 def login_page():
     
-    # --- THIS IS THE "HIGH CLASS" LOGIN PAGE - DO NOT CHANGE ---
+    # --- CSS for Login Page ---
     LOGIN_CSS = """
     <style>
         /* Force the app background to be dark */
@@ -120,23 +119,22 @@ def login_page():
     
     st.markdown(LOGIN_CSS, unsafe_allow_html=True) # Inject the CSS
     
-    # --- THIS IS THE WORKING CENTERING CODE - DO NOT CHANGE ---
+    # --- Centering Logic ---
     col1, col2, col3 = st.columns([1, 1.5, 1]) 
     with col2: 
         
         # We embed the image in HTML to control it perfectly
         try:
-            file_ = open("logo.png", "rb")
-            contents = file_.read()
+            with open("logo.png", "rb") as file_:
+                contents = file_.read()
             data_url = base64.b64encode(contents).decode("utf-8")
-            file_.close()
-        
+            
             st.markdown(
                 f'<div style="text-align: center;"><img src="data:image/png;base64,{data_url}" width="300"></div>', 
                 unsafe_allow_html=True
             )
         except FileNotFoundError:
-            st.error("logo.png not found. Please make sure it is in the same folder as app.py")
+            st.error("Logo file missing. Please make sure 'logo.png' is in the root directory.")
 
         st.markdown("<h1 style='text-align: center;'>NTAVis Dashboard</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center;'>Please sign in to continue.</p>", unsafe_allow_html=True)
@@ -216,7 +214,20 @@ def main_dashboard():
     
     st_autorefresh(interval=10000, key="data_refresher")
 
-    st.sidebar.image("logo.png", width=200)
+    # --- Base64 Encoding for Sidebar Logo (Fix for MediaFileStorageError) ---
+    try:
+        with open("logo.png", "rb") as file_:
+            contents = file_.read()
+        
+        data_url = base64.b64encode(contents).decode("utf-8")
+        
+        st.sidebar.markdown(
+            f'<div style="text-align: center;"><img src="data:image/png;base64,{data_url}" width="200"></div>', 
+            unsafe_allow_html=True
+        )
+    except FileNotFoundError:
+        st.sidebar.markdown("<h3 style='text-align: center;'>NTAVis</h3>", unsafe_allow_html=True)
+        
     st.sidebar.title(f"Welcome, {st.secrets['login']['username']}!")
     if st.sidebar.button("Logout"):
         st.session_state.clear()
@@ -313,7 +324,6 @@ def main_dashboard():
         
         st.info("Click column headers to sort. Table rows are color-coded by threat type.")
         
-        # --- THIS IS THE FIX for the 'highlight_facts' typo ---
         st.dataframe(
             display_df.style.apply(highlight_threats, axis=1), 
             use_container_width=True
@@ -340,7 +350,6 @@ def main_dashboard():
             
             map_output = st_folium(m, use_container_width=True, height=600, returned_objects=[])
             
-            # --- THIS IS THE FIX for the 'map_moutput' typo ---
             if map_output and map_output.get("center"): st.session_state["map_center"] = [map_output["center"]["lat"], map_output["center"]["lng"]]
             if map_output and map_output.get("zoom"): st.session_state["map_zoom"] = map_output["zoom"]
         else:
@@ -360,7 +369,6 @@ def main_dashboard():
                           color_discrete_map=THREAT_COLOR_MAP)
             fig1.update_layout(showlegend=False)
             
-            # --- THIS IS THE FIX for the 'T' typo ---
             st.plotly_chart(fig1, use_container_width=True, config=config)
             
         with col2:

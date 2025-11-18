@@ -1,8 +1,9 @@
 # Virtual Environment
 venv/
 
-# Streamlit Secrets
-.streamlit/secrets.toml
+# --- CRITICAL SECRET FILES ---
+secrets.toml
+config.json
 
 # Local User Data
 user_data.json

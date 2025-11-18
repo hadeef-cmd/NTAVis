@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NTAVis Project - Home</title>
+    <!-- 🛑 FINAL FIX: Loading Tailwind directly from CDN. This replaces the complex local CSS link. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS Styles (Replaces input.css and style.css content) -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0B1120;
+        }
+        .hero-bg {
+            background-color: #0B1120;
+            background-image: radial-gradient(circle at 10% 20%, rgba(76, 88, 142, 0.2) 0%, rgba(76, 88, 142, 0) 25%),
+                              radial-gradient(circle at 80% 70%, rgba(68, 55, 120, 0.2) 0%, rgba(68, 55, 120, 0) 25%);
+        }
+        .card {
+            background-color: rgba(23, 30, 51, 0.6);
+            border: 1px solid #2a314b;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            border-color: #4e54c8;
+            transform: translateY(-5px);
+        }
+        .btn-primary {
+            background-image: linear-gradient(to right, #4e54c8, #8f94fb);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 20px rgba(143, 148, 251, 0.5);
+            transform: translateY(-2px);
+        }
+        .text-glow {
+            text-shadow: 0 0 10px rgba(143, 148, 251, 0.3);
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <header class="sticky top-0 z-50 border-b border-gray-800" style="background-color: rgba(11, 17, 32, 0.8); backdrop-filter: blur(10px);">
+        <nav class="container mx-auto flex items-center justify-between p-4">
+            <div class="text-2xl font-black text-white text-glow">
+                NTAVis Project
+            </div>
+            
+            <div class="hidden md:flex space-x-6">
+                <a href="#home" class="hover:text-white transition-colors">Home</a>
+                <a href="#features" class="hover:text-white transition-colors">Features</a>
+                <a href="#about" class="hover:text-white transition-colors">About</a>
+                <a href="#contact" class="hover:text-white transition-colors">Contact</a>
+            </div>
+
+            <!-- Hamburger Button (Mobile) -->
+            <button id="menu-btn" class="md:hidden z-50">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-white">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+        </nav>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden absolute top-full left-0 w-full" style="background-color: rgba(11, 17, 32, 0.95); backdrop-filter: blur(10px);">
+            <a href="#home" class="block text-center p-4 border-b border-gray-800 hover:bg-gray-800">Home</a>
+            <a href="#features" class="block text-center p-4 border-b border-gray-800 hover:bg-gray-800">Features</a>
+            <a href="#about" class="block text-center p-4 border-b border-gray-800 hover:bg-gray-800">About</a>
+            <a href="#contact" class="block text-center p-4 hover:bg-gray-800">Contact</a>
+        </div>
+    </header>
+
+    <main>
+        <section id="home" class="relative hero-bg py-32 md:py-48 text-center overflow-hidden">
+            <div class="container mx-auto px-4 relative z-10">
+                
+                <h1 class="text-4xl md:text-6xl font-black text-white mb-6 text-glow leading-tight">
+                    Network Traffic Analysis & Visualization <br>for Real-Time Threat Detection
+                </h1>
+                <p class="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-10">
+                    A Final Year Project by GMI students, creating a real-time dashboard with IDS capabilities to detect, analyze, and visualize network threats as they happen.
+                </p>
+                <div>
+                    <a href="https://ntavis-twupezcrfqzrwdqen7lln5.streamlit.app/" target="_blank" rel="noopener noreferrer" 
+                       class="btn-primary text-white font-bold py-4 px-10 rounded-full text-lg shadow-lg">
+                        Launch Dashboard
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="py-24 bg-gray-900">
+            <div class="container mx-auto px-4">
+                <h2 class="text-4xl font-black text-white text-center mb-16 text-glow">Project Features</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="card rounded-lg p-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 mb-4 text-indigo-400" aria-hidden="true"><path d="M2 13.1091C2 12.013 2.89543 11.1177 4 11.1177H20C21.1046 11.1177 22 12.013 22 13.1091V19.01C22 20.1061 21.1046 21.0013 20 21.0013H4C2.89543 21.0013 2 20.1061 2 19.01V13.1091Z"></path><path d="M6.01 11.1177L6.01 4.1086C6.01 3.01247 6.89543 2.11719 8 2.11719H16C17.1046 2.11719 18 3.01247 18 4.1086V11.1177"></path></svg>
+                        <h3 class="text-2xl font-bold text-white mb-3">Real-Time Packet Capture</h3>
+                        <p class="text-gray-300">Continuously collects and stores network packet data for live analysis.</p>
+                    </div>
+                    <div class="card rounded-lg p-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 mb-4 text-indigo-400" aria-hidden="true"><path d="M14.5 9.5L11 13L9.5 11.5"></path><path d="M8.5 7.5L7 9L5.5 7.5"></path><path d_i="M18.5 7.5L17 9L15.5 7.5"></path><path d="M2 12C2 6.5 6.5 2 12 2C17.5 2 22 6.5 22 12C22 17.5 17.5 22 12 22C6.5 22 2 17.5 2 12Z"></path></svg>
+                        <h3 class="text-2xl font-bold text-white mb-3">IDS Threat Detection</h3>
+                        <p class="text-gray-300">Identifies suspicious events like SYN floods, UDP floods, and malformed packets.</p>
+                    </div>
+                    <div class="card rounded-lg p-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 mb-4 text-indigo-400" aria-hidden="true"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20V16"></path></svg>
+                        <h3 class="text-2xl font-bold text-white mb-3">Interactive Dashboard</h3>
+                        <p class="text-gray-300">A user-friendly web interface for monitoring network threats and activity.</p>
+                    </div>
+                    <div class="card rounded-lg p-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 mb-4 text-indigo-400" aria-hidden="true"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"></path><path d="M2 12H22"></path><path d="M12 2C14.5013 4.73835 15.6047 8.28013 15.4411 11.889C15.2774 15.4979 13.7849 18.8021 11.2318 21.1235"></path><path d="M12 2C9.49872 4.73835 8.3953 8.28013 8.55887 11.889C8.72255 15.4979 10.2151 18.8021 12.7682 21.1235"></path></svg>
+                        <h3 class="text-2xl font-bold text-white mb-3">Geo Map Visualization</h3>
+                        <p class="text-gray-300">Plots threat sources on a live world map to identify geographic attack patterns.</p>
+                    </div>
+                    <div class="card rounded-lg p-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 mb-4 text-indigo-400" aria-hidden="true"><path d="M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0 -20 0"></path><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg>
+                        <h3 class="text-2xl font-bold text-white mb-3">Threat Analytics</h3>
+                        <p class="text-gray-300">Displays interactive charts for threat types, protocol usage, and trends over time.</p>
+                    </div>
+                    <div class="card rounded-lg p-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 mb-4 text-indigo-400" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        <h3 class="text-2xl font-bold text-white mb-3">Secure User Authentication</h3>
+                        <p class="text-gray-300">Secure login and session management to restrict dashboard access.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="py-24 hero-bg">
+            <div class="container mx-auto px-4">
+                <h2 class="text-4xl font-black text-white text-center mb-16 text-glow">About The Team</h2>
+
+                <h3 class="text-3xl font-bold text-white text-center mb-10 text-glow">Our Supervisor</h3>
+
+                <div class="flex justify-center mb-16">
+                    <div class="card rounded-lg p-8 text-center w-full md:w-1/2 lg:w-1/4">
+                        <!-- SUPERVISOR IMAGE -->
+                        <img src="https://i.imgur.com/b4Lfcar.jpeg" 
+                             alt="Mr. Muhammad Shafiq Othman" 
+                             class="w-32 h-32 rounded-full mx-auto mb-5 border-4 border-indigo-400 shadow-lg">
+                        <h3 class="text-2xl font-bold text-white mb-1">Mr. Muhammad Shafiq Othman</h3>
+                        <p class="text-indigo-300 text-lg">Project Supervisor</p>
+                    </div>
+                </div>
+
+                <h3 class="text-3xl font-bold text-white text-center mb-10 text-glow">The Developers</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    
+                    <div class="card rounded-lg p-6 text-center">
+                        <!-- MEMBER 1: Muhammad Hadif Shah -->
+                        <img src="https://i.imgur.com/fyZoKHR.jpeg" 
+                             alt="Muhammad Hadif Shah" 
+                             class="w-28 h-28 rounded-full mx-auto mb-4 border-2 border-gray-600">
+                        <h3 class="text-xl font-bold text-white mb-1">Muhammad Hadif Shah</h3>
+                        <p class="text-gray-300">NWS23070107</p> </div>
+                    
+                    <div class="card rounded-lg p-6 text-center">
+                        <!-- MEMBER 2: Muhammad Aniq Altamis -->
+                        <img src="https://i.imgur.com/0pZ8MzK.jpeg" 
+                             alt="Muhammad Aniq Altamis" 
+                             class="w-28 h-28 rounded-full mx-auto mb-4 border-2 border-gray-600">
+                        <h3 class="text-xl font-bold text-white mb-1">Muhammad Aniq Altamis</h3>
+                        <p class="text-gray-300">NWS23070226</p> </div>
+                    
+                    <div class="card rounded-lg p-6 text-center">
+                        <!-- MEMBER 3: Muhammad Atiq -->
+                        <img src="https://i.imgur.com/yL3nUk0.jpeg" 
+                             alt="Muhammad Atiq" 
+                             class="w-28 h-28 rounded-full mx-auto mb-4 border-2 border-gray-600">
+                        <h3 class="text-xl font-bold text-white mb-1">Muhammad Atiq</h3>
+                        <p class="text-gray-300">NWS23070120</p> </div>
+                    
+                    <div class="card rounded-lg p-6 text-center">
+                        <!-- MEMBER 4: Muhammad Darwisy Irfan -->
+                        <img src="https://i.imgur.com/UHWXpo6.jpeg" 
+                             alt="Muhammad Darwisy Irfan" 
+                             class="w-28 h-28 rounded-full mx-auto mb-4 border-2 border-gray-600">
+                        <h3 class="text-xl font-bold text-white mb-1">Muhammad Darwisy Irfan</h3>
+                        <p class="text-gray-300">NWS23070441</p> </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="py-24 bg-gray-900 text-center">
+            <div class="container mx-auto px-4">
+                <h2 class="text-4xl font-black text-white mb-6 text-glow">Get In Touch</h2>
+                <p class="text-lg text-gray-300 mb-8">For more information about this project, please feel free to contact us.</p>
+                <a href="mailto:hadifshahwork@gmail.com" 
+                   class="text-xl font-bold text-white btn-primary rounded-full py-4 px-10 shadow-lg">
+                   Email the Project Team
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-gray-800" style="background-color: #0B1120;">
+        <div class="container mx-auto px-4 py-8 flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+            <p class="text-gray-400">&copy; 2025 NTAVis Project. All rights reserved.</p>
+            <div class="flex space-x-6 mt-4 md:mt-0">
+                <a href="https://github.com/hadeef-cmd/NTAVis" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors">
+                    GitHub Repository
+                </a>
+                <a href="https://github.com/hadeef-cmd/NTAVis/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors">
+                    View License
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close menu when a link is clicked
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

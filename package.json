@@ -1,0 +1,26 @@
+{
+  "name": "ntavisproject",
+  "version": "1.0.0",
+  "description": "NTAVis is a Python-based tool for real-time network packet capture, threat analysis, and visualization. It uses Scapy for packet sniffing and Streamlit for an interactive web-based dashboard.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hadeef-cmd/NTAVis.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hadeef-cmd/NTAVis/issues"
+  },
+  "homepage": "https://github.com/hadeef-cmd/NTAVis#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17"
+  }
+}

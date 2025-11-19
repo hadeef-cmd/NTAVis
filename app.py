@@ -172,6 +172,8 @@ def login_page():
                                     st.session_state["email_to_save"] = email.strip()
                                     st.success(f"OTP sent to {email}! Please check your email.")
                                     st.rerun()
+                                    # Ensure the correct state is saved for the username if needed later
+                                    # Note: OTP logic is handled in the next form
                         else: st.error("❌ Incorrect username or password.")
             else:
                 with st.form("otp_form"):
@@ -212,7 +214,7 @@ def main_dashboard():
     </style>
     """, unsafe_allow_html=True)
     
-    st_autorefresh(interval=10000, key="data_refresher")
+    # st_autorefresh(interval=10000, key="data_refresher") # REMOVED: Moved into conditional logic below
 
     # --- Base64 Encoding for Sidebar Logo (Fix for MediaFileStorageError) ---
     try:
@@ -229,6 +231,17 @@ def main_dashboard():
         st.sidebar.markdown("<h3 style='text-align: center;'>NTAVis</h3>", unsafe_allow_html=True)
         
     st.sidebar.title(f"Welcome, {st.secrets['login']['username']}!")
+    
+    # --- NEW: AUTO-REFRESH CONTROL BUTTON ---
+    if st.sidebar.button("Stop Auto-Refresh" if st.session_state.is_refreshing else "Start Auto-Refresh"):
+        st.session_state.is_refreshing = not st.session_state.is_refreshing
+        # st.rerun() # Optional: Rerun immediately to stop/start if needed
+    
+    # Only run the auto-refresher if the state is True
+    if st.session_state.is_refreshing:
+        st_autorefresh(interval=10000, key="data_refresher") # 10 seconds = 10000 milliseconds
+    # --- END AUTO-REFRESH CONTROL ---
+
     if st.sidebar.button("Logout"):
         st.session_state.clear()
         st.rerun()
@@ -359,9 +372,14 @@ def main_dashboard():
         st.markdown("## 📈 Analytics Dashboard")
         st.markdown("#### Traffic Composition")
         
+        # We ensure threat_counts_df and protocol_counts_df are defined here for download buttons
+        threat_counts_df = df["threat_type"].value_counts().reset_index()
+        protocol_counts_df = df["protocol"].value_counts().nlargest(10).reset_index() # Limiting protocol list for clarity in download
+        top_src_ips_df = df['src_ip'].value_counts().nlargest(10).reset_index()
+        top_dst_ips_df = df['dst_ip'].value_counts().nlargest(10).reset_index()
+        
         col1, col2 = st.columns(2)
         with col1:
-            threat_counts_df = df["threat_type"].value_counts().reset_index()
             fig1 = px.bar(threat_counts_df, x="threat_type", y="count",
                           title="Threats by Type",
                           labels={'threat_type':'Threat Type'},
@@ -370,35 +388,41 @@ def main_dashboard():
             fig1.update_layout(showlegend=False)
             
             st.plotly_chart(fig1, use_container_width=True, config=config)
+            # --- NEW: Download button for Threat Counts ---
+            st.download_button("Download Data as CSV", convert_df_to_csv(threat_counts_df), "threat_counts.csv", "text/csv", key='download-threat-counts')
             
         with col2:
-            protocol_counts_df = df["protocol"].value_counts().reset_index()
             fig2 = px.pie(protocol_counts_df, names="protocol", values="count",
                           title="Protocol Distribution",
                           color="protocol",
                           color_discrete_map={"TCP": "#007BFF", "UDP": "#00C49F", "ICMP": "#FFC107"})
             st.plotly_chart(fig2, use_container_width=True, config=config)
+            # --- NEW: Download button for Protocol Distribution ---
+            st.download_button("Download Data as CSV", convert_df_to_csv(protocol_counts_df), "protocol_distribution.csv", "text/csv", key='download-protocol-counts')
             
         st.markdown("---")
         st.markdown("#### Top IP Addresses")
         
         col3, col4 = st.columns(2)
         with col3:
-            top_src_ips_df = df['src_ip'].value_counts().nlargest(10).reset_index()
             fig3 = px.bar(top_src_ips_df, x='src_ip', y='count', title="Top 10 Source IPs")
             st.plotly_chart(fig3, use_container_width=True, config=config)
-            st.download_button("Download Data as CSV", convert_df_to_csv(top_src_ips_df), "top_source_ips.csv", "text/csv", key='download-src-ips')
+            st.download_button("Download Data as CSV", convert_df_to_csv(top_src_ips_df), "top_source_ips.csv", "text/csv", key='download-src-ips') # Existing button
             
         with col4:
-            top_dst_ips_df = df['dst_ip'].value_counts().nlargest(10).reset_index()
             fig4 = px.bar(top_dst_ips_df, x='dst_ip', y='count', title="Top 10 Destination IPs")
             st.plotly_chart(fig4, use_container_width=True, config=config)
+            # --- NEW: Download button for Top Destination IPs ---
+            st.download_button("Download Data as CSV", convert_df_to_csv(top_dst_ips_df), "top_destination_ips.csv", "text/csv", key='download-dst-ips')
+            
 
 if __name__ == "__main__":
     if 'database' not in st.secrets or 'login' not in st.secrets or 'gmail' not in st.secrets:
         st.error("CRITICAL: Your Streamlit secrets are missing or incomplete. Please check your .streamlit/secrets.toml file.")
     else:
         if "logged_in" not in st.session_state: st.session_state.logged_in = False
+        # NEW: Initialize the state variable for auto-refresh, starting ON by default
+        if "is_refreshing" not in st.session_state: st.session_state.is_refreshing = True 
         
         if st.session_state.logged_in:
             main_dashboard()

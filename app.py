@@ -172,8 +172,6 @@ def login_page():
                                     st.session_state["email_to_save"] = email.strip()
                                     st.success(f"OTP sent to {email}! Please check your email.")
                                     st.rerun()
-                                    # Ensure the correct state is saved for the username if needed later
-                                    # Note: OTP logic is handled in the next form
                         else: st.error("❌ Incorrect username or password.")
             else:
                 with st.form("otp_form"):
@@ -214,8 +212,6 @@ def main_dashboard():
     </style>
     """, unsafe_allow_html=True)
     
-    # st_autorefresh(interval=10000, key="data_refresher") # REMOVED: Moved into conditional logic below
-
     # --- Base64 Encoding for Sidebar Logo (Fix for MediaFileStorageError) ---
     try:
         with open("logo.png", "rb") as file_:
@@ -232,15 +228,28 @@ def main_dashboard():
         
     st.sidebar.title(f"Welcome, {st.secrets['login']['username']}!")
     
-    # --- NEW: AUTO-REFRESH CONTROL BUTTON ---
-    if st.sidebar.button("Stop Auto-Refresh" if st.session_state.is_refreshing else "Start Auto-Refresh"):
-        st.session_state.is_refreshing = not st.session_state.is_refreshing
-        # st.rerun() # Optional: Rerun immediately to stop/start if needed
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### Data Refresh Control")
     
+    # --- NEW: SEPARATE AUTO-REFRESH BUTTONS ---
+    col_start, col_stop = st.sidebar.columns(2)
+    
+    # START Button: Sets refreshing state to True
+    if col_start.button("Start Refresh"):
+        st.session_state.is_refreshing = True
+    
+    # STOP Button: Sets refreshing state to False
+    if col_stop.button("Stop Refresh"):
+        st.session_state.is_refreshing = False
+
+    # Display current status and trigger the autorefresh component
+    status = "🔴 Stopped" if not st.session_state.is_refreshing else "🟢 Running"
+    st.sidebar.info(f"Auto-Refresh: {status}")
+    # --- END AUTO-REFRESH CONTROL ---
+
     # Only run the auto-refresher if the state is True
     if st.session_state.is_refreshing:
         st_autorefresh(interval=10000, key="data_refresher") # 10 seconds = 10000 milliseconds
-    # --- END AUTO-REFRESH CONTROL ---
 
     if st.sidebar.button("Logout"):
         st.session_state.clear()
@@ -372,9 +381,9 @@ def main_dashboard():
         st.markdown("## 📈 Analytics Dashboard")
         st.markdown("#### Traffic Composition")
         
-        # We ensure threat_counts_df and protocol_counts_df are defined here for download buttons
+        # We ensure threat_counts_df, protocol_counts_df, etc. are defined here for download buttons
         threat_counts_df = df["threat_type"].value_counts().reset_index()
-        protocol_counts_df = df["protocol"].value_counts().nlargest(10).reset_index() # Limiting protocol list for clarity in download
+        protocol_counts_df = df["protocol"].value_counts().reset_index()
         top_src_ips_df = df['src_ip'].value_counts().nlargest(10).reset_index()
         top_dst_ips_df = df['dst_ip'].value_counts().nlargest(10).reset_index()
         

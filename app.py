@@ -353,7 +353,7 @@ def main_dashboard():
 
     elif menu == "🗺️ Geo Map":
         st.markdown("## 🗺️ Geo Map")
-        st.markdown("""**Legend:** - 🔴 `SYN Flood` - 🟠 `UDP Flood` - 🟡 `Malformed` - 🔵 `Suspicious`""")
+        st.markdown("""**Legend:** - 🔴 `SYN Flood` - 🟠 `UDP Flood` - 🟡 `Malformed` - 🔵 `Suspicious` - ⚪ `Unknown`""")
         map_df = df.dropna(subset=["latitude", "longitude"])
         
         if not map_df.empty:

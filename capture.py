@@ -61,17 +61,19 @@ def get_geolocation(ip, reader):
     try:
         ip_obj = ipaddress.ip_address(ip)
         if ip_obj.is_private or ip_obj.is_loopback:
-            return None, None
+            # For internal threats, assign a fixed location (e.g., HQ)
+            # This logic is now handled in the main handle_packet function
+            return None, None, "Internal"
     except ValueError:
-        return None, None # Invalid IP format
+        return None, None, "Unknown" # Invalid IP format
 
     try:
         response = reader.city(ip)
-        return response.location.latitude, response.location.longitude
+        return response.location.latitude, response.location.longitude, "Public"
     except geoip2.errors.AddressNotFoundError:
-        return None, None # IP not found in the database
+        return None, None, "Public" # IP not found, but assume public
     except Exception:
-        return None, None
+        return None, None, "Public"
 
 def send_telegram_alert(message):
     """Sends a formatted message to a Telegram chat."""
@@ -86,6 +88,15 @@ def handle_packet(pkt, conn, reader):
     """Processes a single captured packet."""
     if IP in pkt:
         src_ip = pkt[IP].src
+
+        # --- FIXED: Filter to ignore packets from private/loopback source IPs ---
+        try:
+            ip_obj = ipaddress.ip_address(src_ip)
+            if ip_obj.is_private or ip_obj.is_loopback:
+                return  # Silently ignore packets from the local network
+        except ValueError:
+            return  # Ignore packets with invalid source IPs
+
         dst_ip = pkt[IP].dst
         protocol = pkt[IP].proto
         length = len(pkt)
@@ -94,18 +105,15 @@ def handle_packet(pkt, conn, reader):
 
         # Only process and store packets classified as threats
         if threat != "Unknown":
-            # Attempt to geolocate the source, fall back to destination
-            latitude, longitude = get_geolocation(src_ip, reader)
-            if latitude is None:
-                latitude, longitude = get_geolocation(dst_ip, reader)
+            latitude, longitude, network_type = get_geolocation(src_ip, reader)
 
             # Insert threat data into the database
             try:
                 with conn.cursor() as cursor:
                     cursor.execute("""
-                        INSERT INTO packets (timestamp, src_ip, dst_ip, protocol, length, threat_type, latitude, longitude)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    """, (timestamp, src_ip, dst_ip, str(protocol), length, threat, latitude, longitude))
+                        INSERT INTO packets (timestamp, src_ip, dst_ip, protocol, length, threat_type, latitude, longitude, network_type)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """, (timestamp, src_ip, dst_ip, str(protocol), length, threat, latitude, longitude, network_type))
                 conn.commit()
             except Exception as e:
                 print(f"DB insert error: {e}")

@@ -69,10 +69,16 @@ def get_data():
         conn = psycopg2.connect(st.secrets["database"]["connection_string"])
         df = pd.read_sql_query("SELECT * FROM packets ORDER BY timestamp DESC LIMIT 2000", conn)
         conn.close() 
+        
+        # 1. CLEANING
         if "protocol" in df.columns:
             df["protocol"] = df["protocol"].apply(lambda x: PROTOCOL_MAP.get(int(x), str(x)) if pd.notnull(x) and str(x).isdigit() else str(x))
         if "timestamp" in df.columns:
             df["timestamp"] = pd.to_datetime(df["timestamp"]).dt.tz_localize(None)
+            
+        # 2. FILTERING: Remove "Unknown" threats globally
+        df = df[df['threat_type'] != 'Unknown']
+        
         return df
     except Exception as e:
         return e
@@ -233,12 +239,13 @@ def main_dashboard():
     if menu == "📊 Overview":
         st.title("🛡️ Threat Overview")
         
-        # FIX: Ensure all categories appear even if count is 0
-        threat_counts = df["threat_type"].value_counts().reindex(THREAT_COLOR_MAP.keys(), fill_value=0)
+        # Filter keys for display to exclude Unknown
+        display_keys = [k for k in THREAT_COLOR_MAP.keys() if k != "Unknown"]
+        threat_counts = df["threat_type"].value_counts().reindex(display_keys, fill_value=0)
         total_packets = len(df)
         
         c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("Total Packets", total_packets)
+        c1.metric("Total Threats", total_packets)
         c2.metric("SYN Flood", int(threat_counts.get("SYN Flood", 0)), delta_color="inverse")
         c3.metric("UDP Flood", int(threat_counts.get("UDP Flood", 0)), delta_color="inverse")
         c4.metric("Malformed", int(threat_counts.get("Malformed", 0)), delta_color="inverse")
@@ -264,8 +271,8 @@ def main_dashboard():
             st.plotly_chart(fig_pie, use_container_width=True)
 
         st.subheader("⚠️ Latest 5 Alerts")
-        # Filter Unknowns for the alert table
-        latest_alerts = df[df['threat_type'] != 'Unknown'].head(5)[['timestamp', 'threat_type', 'src_ip', 'dst_ip']]
+        # Latest alerts automatically filters unknown because of global filter
+        latest_alerts = df.head(5)[['timestamp', 'threat_type', 'src_ip', 'dst_ip']]
         if not latest_alerts.empty:
             st.dataframe(latest_alerts.style.apply(highlight_threats, axis=1), use_container_width=True)
         else:
@@ -298,12 +305,13 @@ def main_dashboard():
             return None, None
 
         # 3. Apply the fix
-        locs = map_df.apply(assign_location, axis=1)
-        map_df['latitude'] = [x[0] for x in locs]
-        map_df['longitude'] = [x[1] for x in locs]
-        
-        # Drop rows that still have no location
-        map_df = map_df.dropna(subset=['latitude', 'longitude'])
+        if not map_df.empty:
+            locs = map_df.apply(assign_location, axis=1)
+            map_df['latitude'] = [x[0] for x in locs]
+            map_df['longitude'] = [x[1] for x in locs]
+            
+            # Drop rows that still have no location
+            map_df = map_df.dropna(subset=['latitude', 'longitude'])
 
         if not map_df.empty:
             # Center map on average location

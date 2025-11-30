@@ -1,6 +1,6 @@
 from scapy.all import sniff, IP, TCP, UDP
 import psycopg2
-from datetime import datetime, timedelta  # Added timedelta for timezone fix
+from datetime import datetime
 import geoip2.database
 import requests
 import json
@@ -8,7 +8,6 @@ import ipaddress
 
 # --- Constants ---
 GEOIP_DB = "GeoLite2-City.mmdb"
-TELEGRAM_IP_PREFIX = "149.154" # Telegram's usual IP range start
 
 # --- Load credentials securely from config file ---
 try:
@@ -90,16 +89,8 @@ def handle_packet(pkt, conn, reader):
         dst_ip = pkt[IP].dst
         protocol = pkt[IP].proto
         length = len(pkt)
-        
-        # --- SAFETY CHECK: Ignore Telegram Traffic ---
-        # This prevents the Infinite Loop if the filter misses something
-        if dst_ip.startswith(TELEGRAM_IP_PREFIX) or src_ip.startswith(TELEGRAM_IP_PREFIX):
-            return 
-
         threat = classify_packet(pkt)
-        
-        # --- TIMEZONE FIX: Add 8 Hours for Malaysia Time ---
-        timestamp = datetime.now() + timedelta(hours=8)
+        timestamp = datetime.now()
 
         # Only process and store packets classified as threats
         if threat != "Unknown":
@@ -122,31 +113,20 @@ def handle_packet(pkt, conn, reader):
 
             # Send a real-time alert
             alert_msg = f"🚨 Threat detected: {threat}\nSource IP: {src_ip}\nDestination IP: {dst_ip}\nTime: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
-            
-            # Print to console so you can see it working in the terminal
-            print(f"[*] Alert Sent: {threat} from {src_ip}") 
-            
             send_telegram_alert(alert_msg)
 
 if __name__ == "__main__":
     conn = init_db()
-    
-    try:
-        reader = geoip2.database.Reader(GEOIP_DB)
-    except FileNotFoundError:
-        print(f"WARNING: {GEOIP_DB} not found. Geolocation will fail.")
-        reader = None
+    reader = geoip2.database.Reader(GEOIP_DB)
     
     print("🚀 Capturing packets... Press CTRL+C to stop.")
     try:
-        # --- INFINITE LOOP FIX: Added filter="not port 443" ---
-        # This tells Scapy to completely ignore HTTPS traffic (Telegram)
-        sniff(filter="not port 443", prn=lambda pkt: handle_packet(pkt, conn, reader), store=0)
+        # Start sniffing packets, calling handle_packet for each one
+        sniff(prn=lambda pkt: handle_packet(pkt, conn, reader), store=0)
     except KeyboardInterrupt:
         print("\n🛑 Stopped packet capture.")
     finally:
         # Ensure resources are closed gracefully
         conn.close()
-        if reader:
-            reader.close()
+        reader.close()
         print("Database connection and GeoIP reader closed.")

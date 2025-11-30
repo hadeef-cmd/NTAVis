@@ -384,7 +384,8 @@ def main_dashboard():
         if search:
             filtered_df = df[df['src_ip'].str.contains(search, na=False) | df['dst_ip'].str.contains(search, na=False)]
         
-        st.dataframe(filtered_df.style.apply(highlight_threats, axis=1), use_container_width=True)
+        # --- HEIGHT FIX: Added height=800 to make the table longer ---
+        st.dataframe(filtered_df.style.apply(highlight_threats, axis=1), use_container_width=True, height=800)
 
 if __name__ == "__main__":
     if 'database' not in st.secrets or 'login' not in st.secrets:

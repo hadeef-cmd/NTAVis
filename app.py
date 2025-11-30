@@ -347,7 +347,8 @@ def main_dashboard():
                     popup=folium.Popup(popup_html, max_width=250)
                 ).add_to(marker_cluster)
 
-            st_folium(m, width="100%", height=600, returned_objects=[])
+            # --- HEIGHT FIX: Changed from 600 to 900 ---
+            st_folium(m, width="100%", height=900, returned_objects=[])
         else:
             st.warning("⚠️ No mappable data found.")
             st.info("Waiting for traffic... (Local IPs will appear near Kuala Lumpur)")

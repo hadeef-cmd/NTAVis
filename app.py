@@ -32,7 +32,6 @@ THREAT_COLOR_MAP = {
     "UDP Flood": "#FFA500",  # Orange
     "Malformed": "#F8DE7E",  # Yellow/Maize
     "Suspicious": "#ADD8E6", # Light Blue
-    "Unknown": "#808080"    # Gray
 }
 
 # --- Helper Function for CSV Download ---

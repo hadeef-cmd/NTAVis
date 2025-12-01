@@ -5,16 +5,9 @@ import geoip2.database
 import requests
 import json
 import ipaddress
-import time
-from collections import defaultdict
 
 # --- Constants ---
 GEOIP_DB = "GeoLite2-City.mmdb"
-
-# --- Rate Limiting Config ---
-SYN_TRACKER = defaultdict(list)  # Stores timestamps of SYN packets per IP
-FLOOD_THRESHOLD = 15             # Minimum SYN packets per second to trigger alert
-TIME_WINDOW = 1.0                # Time window in seconds
 
 # --- Load credentials securely from config file ---
 try:
@@ -40,44 +33,25 @@ def init_db():
         print(f"❌ Cloud database connection failed: {e}")
         exit()
 
-def classify_packet(pkt, src_ip):
-    """Classifies a packet based on simple threat heuristics and rate limiting."""
-    
-    current_time = time.time()
-
+def classify_packet(pkt):
+    """Classifies a packet based on simple threat heuristics."""
     if pkt.haslayer(TCP):
-        flags = pkt[TCP].flags
-        
-        # 1. Rate-Limited SYN Flood Detection
-        if flags == "S":  # SYN flag only
-            # Add timestamp to tracker
-            SYN_TRACKER[src_ip].append(current_time)
-            # Remove timestamps older than TIME_WINDOW
-            SYN_TRACKER[src_ip] = [t for t in SYN_TRACKER[src_ip] if current_time - t <= TIME_WINDOW]
-            
-            # Only trigger if threshold is exceeded
-            if len(SYN_TRACKER[src_ip]) > FLOOD_THRESHOLD:
-                return "SYN Flood"
-            else:
-                return "Unknown" # Normal SYN packet, ignore
-
-        # 2. Suspicious Scans (Keep these instant)
-        if flags & 0x40 or flags & 0x80 or flags & 0x100:
+        # Check for suspicious TCP flags (Xmas, Fin, Null scans)
+        if pkt[TCP].flags & 0x40 or pkt[TCP].flags & 0x80 or pkt[TCP].flags & 0x100:
              return "Suspicious"
-        if flags & 0x29 == 0x29: # Fin, Push, Urg (Xmas scan)
+        if pkt[TCP].flags & 0x29 == 0x29: # Fin, Push, Urg (Xmas scan)
             return "Suspicious"
-        if flags == 0: # Null scan
+        if pkt[TCP].flags == 0: # Null scan
             return "Suspicious"
-
+        if pkt[TCP].flags == "S": # SYN flag only
+            return "SYN Flood"
     elif pkt.haslayer(UDP):
         # Check for large UDP packets to high ports
         if pkt[UDP].dport > 1024 and len(pkt[UDP].payload) > 512:
             return "UDP Flood"
-
     # Check for malformed IP header (options field)
     if pkt.haslayer(IP) and pkt[IP].ihl > 5:
         return "Malformed"
-
     return "Unknown"
 
 def get_geolocation(ip, reader):
@@ -88,6 +62,7 @@ def get_geolocation(ip, reader):
         ip_obj = ipaddress.ip_address(ip)
         if ip_obj.is_private or ip_obj.is_loopback:
             # For internal threats, assign a fixed location (e.g., HQ)
+            # This logic is now handled in the main handle_packet function
             return None, None, "Internal"
     except ValueError:
         return None, None, "Unknown" # Invalid IP format
@@ -114,23 +89,18 @@ def handle_packet(pkt, conn, reader):
     if IP in pkt:
         src_ip = pkt[IP].src
 
-        # --- DEMO SETTING: Private IP Filter DISABLED ---
-        # If we filter private IPs, we won't see attacks from Laptop B (Local Network).
-        # We comment this out so the demo works.
-        # try:
-        #     ip_obj = ipaddress.ip_address(src_ip)
-        #     if ip_obj.is_private or ip_obj.is_loopback:
-        #         return 
-        # except ValueError:
-        #     return
+        # --- FIXED: Filter to ignore packets from private/loopback source IPs ---
+        try:
+            ip_obj = ipaddress.ip_address(src_ip)
+            if ip_obj.is_private or ip_obj.is_loopback:
+                return  # Silently ignore packets from the local network
+        except ValueError:
+            return  # Ignore packets with invalid source IPs
 
         dst_ip = pkt[IP].dst
         protocol = pkt[IP].proto
         length = len(pkt)
-        
-        # Pass src_ip to classify_packet for rate limiting
-        threat = classify_packet(pkt, src_ip) 
-        
+        threat = classify_packet(pkt)
         timestamp = datetime.now()
 
         # Only process and store packets classified as threats
@@ -151,10 +121,6 @@ def handle_packet(pkt, conn, reader):
 
             # Send a real-time alert
             alert_msg = f"🚨 Threat detected: {threat}\nSource IP: {src_ip}\nDestination IP: {dst_ip}\nTime: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
-            
-            # Optional: Print to terminal so you see it happening
-            print(alert_msg) 
-            
             send_telegram_alert(alert_msg)
 
 if __name__ == "__main__":
